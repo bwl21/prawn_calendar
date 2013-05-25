@@ -1,5 +1,7 @@
 ﻿require 'prawn_calendar'
 
+OUTDIR=File.dirname(__FILE__)+"/output"
+
 describe PrawnCalendar::WeeklyCalendar do
 
   it "connects to a pdf document" do
@@ -59,12 +61,12 @@ describe PrawnCalendar::WeeklyCalendar do
       end
     end
 
-    @pdf.render_file("hugo1.pdf")
+    @pdf.render_file("#{OUTDIR}/testcalendar.pdf")
 
   end
 
   it "implicit creates a calendar" do
-    Prawn::Document.generate("implicit.pdf") do
+    Prawn::Document.generate("#{OUTDIR}/implicit.pdf") do
       calendar=PrawnCalendar::WeeklyCalendar.new(self)
       calendar.mk_calendar([20,700], width:500,height:250) do
                 cal_entry("2013-05-04T08:00:00+01:00", "2013-05-07T19:00:00", "cc 7as ist ein test, der laufen musdddddds")
@@ -74,7 +76,7 @@ describe PrawnCalendar::WeeklyCalendar do
   end
 
   it "explicit creates a calendar" do
-    Prawn::Document.generate("explicit.pdf") do |pdf|
+    Prawn::Document.generate("#{OUTDIR}/explicit.pdf") do |pdf|
       calendar=PrawnCalendar::WeeklyCalendar.new(pdf)
       calendar.mk_calendar([20,700], width:500,height:250) do
       end
