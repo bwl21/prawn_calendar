@@ -32,7 +32,7 @@ For the impatient ...
 
 ~~~~ruby
   it "implicit creates a calendar" do
-    Prawn::Document.generate("implicit.pdf") do
+    Prawn::Document.generate("calendar.pdf") do
       calendar=PrawnCalendar::WeeklyCalendar.new(self)
       calendar.mk_calendar([20,700], width:500,height:250) do
                 cal_entry("2013-05-04T08:00:00+01:00", "2013-05-04T19:00:00", "cc 7as ist ein test, der laufen muss")
@@ -40,8 +40,14 @@ For the impatient ...
       end
     end
   end
-
 ~~~~
+
+## History
+
+* 1.0.0 2014-08-14
+
+    Released as 1.0.0 after testing with Prawn 1.2.1
+
 
 ## Limitations
 

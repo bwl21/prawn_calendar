@@ -4,26 +4,11 @@ require 'time'
 require 'date'
 
 
-module Prawn
-  class Document
-
-    # Defines the grid system for a particular document.  Takes the number of
-    # rows and columns and the width to use for the gutter as the
-    # keys :rows, :columns, :gutter, :row_gutter, :column_gutter
-    #
-    def define_grid(options = {})
-      @grid = Grid.new(self, options)
-      @boxes = nil  # see
-    end
-  end
-end
-
+# this module holds all the stuff for PrawnCalendar
 module PrawnCalendar
 
   #
-  # [ class description]
-  #
-  # @author [author]
+  # This Class represents a weekly calendar
   #
   class WeeklyCalendar
     # the Prawn instance xxx
@@ -38,6 +23,9 @@ module PrawnCalendar
     # the number of divisions in calender columns
     # this is to adjust the proportion of the first and
     # the subsequent columns
+    # 
+    # for example c_col_division = 5 and c_first_col_division = 2
+    # makes the first column width be 2/5 of the calender column width
     attr_accessor :c_col_division
 
     # the end of the interval
@@ -64,6 +52,8 @@ module PrawnCalendar
 
     # the number of divisions in the first column
     # the one showing the time
+    # 
+    # see [c_col_division] for more details.
     attr_accessor :c_firstcol_division
 
     # The font size of the calendar annotations
@@ -97,7 +87,7 @@ module PrawnCalendar
       d = Date.iso8601(day)
       # note that we start the week on monday, therefore d -(d-1).wday
       # note that Date adds days, while Time adds seconds
-      # 
+      #
       # compute the beginning of the week
       @c_date_start = (d -(d-1).wday).to_time
       # set end to the last second of end date
@@ -180,7 +170,7 @@ module PrawnCalendar
     # @param  text [String] The text of calender entry
     # @param  extraargs [Hash] additional arguments
     #         :recurring true/false
-    # 
+    #
     # @return nil
     #
     def cal_entry(starttime, endtime, text, extraargs={})
@@ -292,108 +282,108 @@ module PrawnCalendar
         end
 
         if recurring==true then
-        @pdf.rounded_rectangle([@pdf.bounds.width  - 2, @c_entry_gutter], # startpoint
-                               2 , # width
-                               2 , # height
-                               @c_entry_radius                 # radius
-                               )
-        @pdf.fill_and_stroke
-      end
-
-
-
-      # text is limited to gutter. Therefore gutter needs to be doubled
-      # no limit at right and bottom
-      excess_text = @pdf.text_box text,
-        :at => [@c_entry_gutter +2, @pdf.bounds.height- 2*@c_entry_gutter-1], # need 1 pixel more a the top
-        :width    => @pdf.bounds.width-4*@c_entry_gutter -2*@c_entry_right_gutter,
-        :height   => @pdf.bounds.height-4*@c_entry_gutter,
-        :overflow => :truncate,
-        :kerning  => true,
-        :inline_format => true,
-        :size     => @c_entry_fontsize
-    end
-    nil
-  end
-
-
-
-  #
-  # Creates an empty calendar
-  #
-  # @param  ll [Array] the start point of the calendar
-  #                    values are points, 0,0 is the lower left corner of the calender
-  #                    see Prawn::Document.bounding_box for details
-  # @param  opts [Hash] [the options, keys: :width, :height]
-  # @param  &block [Proc] The statements to fill the calendar.
-  #
-  # @return [type] [description]
-  def mk_calendar(ll, opts, &block)
-    @pdf.bounding_box(ll, width: opts[:width], height: opts[:height]) do
-      @pdf.stroke_bounds
-      rows       = (2 + @c_time_end - @c_time_start +1 + @c_extra_rows) * @c_row_division
-      columns    = @c_firstcol_division + @c_days.count * @c_col_division
-
-      @pdf.define_grid(:columns => columns, :rows => rows, :gutter => 0)
-
-      # the frames
-      @pdf.line_width 1
-      mk_entry([0,0],
-               [rows - 1, columns-1], "") # outer frame
-
-      mk_entry([2 * @c_row_division, @c_firstcol_division],
-               [rows - 1 , columns-1], "") # inner frame
-
-      mk_entry([2 * @c_row_division, 0],
-               [rows -1, @c_firstcol_division - 1], "") # left frame
-
-      # the day - line
-      row=0;col=@c_firstcol_division
-      curday=@c_date_start.to_date
-
-      @c_days.each do |i|
-
-        columnhead="#{i} #{curday.strftime('%d.%m.')}"
-        mk_entry([row,col], [row+@c_row_division-1, col+@c_col_division-1], columnhead)
-        #require 'pry';binding.pry
-        curday=curday+1
-        col += @c_col_division
-      end
-
-      # the day after line
-      row=@c_row_division; col=@c_firstcol_division
-      @pdf.line_width 0.75
-      @c_days.each do |i|
-        mk_entry([row, col], [rows -1, col + @c_col_division - 1], "")
-        col+=@c_col_division
-      end
-
-      #the  calendar fields
-      @pdf.line_width "0.1"
-      col=0;row=@c_row_division
-
-      # the rows
-      rowlabels=Array(@c_time_start .. @c_time_end).map{|i| "0#{i}.00"[-5..5]}
-
-      a=[" ", rowlabels, [].fill(" ", 0, @c_extra_rows)]
-      a.flatten.each do |i|
-
-        # the first column
-        # -1 bcause it denotes tha last filled cell, not the next unfilled one
-        mk_entry([row,col],[row + @c_row_division - 1, col+@c_firstcol_division - 1], "#{i}")
-
-        # the other columns
-        icol=@c_firstcol_division
-        (1..7).each do |i|
-          mk_entry([row, icol], [row + @c_row_division -1, icol + @c_col_division - 1], " ")
-          icol=icol + @c_col_division
+          @pdf.rounded_rectangle([@pdf.bounds.width  - 2, @c_entry_gutter], # startpoint
+                                 2 , # width
+                                 2 , # height
+                                 @c_entry_radius                 # radius
+                                 )
+          @pdf.fill_and_stroke
         end
-        row += @c_row_division
-      end
 
-      #yield the block
-      instance_eval(&block)
+
+
+        # text is limited to gutter. Therefore gutter needs to be doubled
+        # no limit at right and bottom
+        excess_text = @pdf.text_box text,
+          :at => [@c_entry_gutter +2, @pdf.bounds.height- 2*@c_entry_gutter-1], # need 1 pixel more a the top
+          :width    => @pdf.bounds.width-4*@c_entry_gutter -2*@c_entry_right_gutter,
+          :height   => @pdf.bounds.height-4*@c_entry_gutter,
+          :overflow => :truncate,
+          :kerning  => true,
+          :inline_format => true,
+          :size     => @c_entry_fontsize
+      end
+      nil
+    end
+
+
+
+    #
+    # Creates an empty calendar
+    #
+    # @param  ll [Array] the start point of the calendar
+    #                    values are points, 0,0 is the lower left corner of the calender
+    #                    see Prawn::Document.bounding_box for details
+    # @param  opts [Hash] [the options, keys: :width, :height]
+    # @param  &block [Proc] The statements to fill the calendar.
+    #
+    # @return [type] [description]
+    def mk_calendar(ll, opts, &block)
+      @pdf.bounding_box(ll, width: opts[:width], height: opts[:height]) do
+        @pdf.stroke_bounds
+        rows       = (2 + @c_time_end - @c_time_start +1 + @c_extra_rows) * @c_row_division
+        columns    = @c_firstcol_division + @c_days.count * @c_col_division
+
+        @pdf.define_grid(:columns => columns, :rows => rows, :gutter => 0)
+
+        # the frames
+        @pdf.line_width 1
+        mk_entry([0,0],
+                 [rows - 1, columns-1], "") # outer frame
+
+        mk_entry([2 * @c_row_division, @c_firstcol_division],
+                 [rows - 1 , columns-1], "") # inner frame
+
+        mk_entry([2 * @c_row_division, 0],
+                 [rows -1, @c_firstcol_division - 1], "") # left frame
+
+        # the day - line
+        row=0;col=@c_firstcol_division
+        curday=@c_date_start.to_date
+
+        @c_days.each do |i|
+
+          columnhead="#{i} #{curday.strftime('%d.%m.')}"
+          mk_entry([row,col], [row+@c_row_division-1, col+@c_col_division-1], columnhead)
+          #require 'pry';binding.pry
+          curday=curday+1
+          col += @c_col_division
+        end
+
+        # the day after line
+        row=@c_row_division; col=@c_firstcol_division
+        @pdf.line_width 0.75
+        @c_days.each do |i|
+          mk_entry([row, col], [rows -1, col + @c_col_division - 1], "")
+          col+=@c_col_division
+        end
+
+        #the  calendar fields
+        @pdf.line_width "0.1"
+        col=0;row=@c_row_division
+
+        # the rows
+        rowlabels=Array(@c_time_start .. @c_time_end).map{|i| "0#{i}.00"[-5..5]}
+
+        a=[" ", rowlabels, [].fill(" ", 0, @c_extra_rows)]
+        a.flatten.each do |i|
+
+          # the first column
+          # -1 bcause it denotes tha last filled cell, not the next unfilled one
+          mk_entry([row,col],[row + @c_row_division - 1, col+@c_firstcol_division - 1], "#{i}")
+
+          # the other columns
+          icol=@c_firstcol_division
+          (1..7).each do |i|
+            mk_entry([row, icol], [row + @c_row_division -1, icol + @c_col_division - 1], " ")
+            icol=icol + @c_col_division
+          end
+          row += @c_row_division
+        end
+
+        #yield the block
+        instance_eval(&block)
+      end
     end
   end
-end
 end
